@@ -46,7 +46,12 @@ export default function OnboardingScreen({ navigation }) {
       <Text style={styles.sub}>{item.sub}</Text>
       {item.key === "chat" && (
         <TouchableOpacity style={styles.cta} activeOpacity={0.9} onPress={next}>
-          <LinearGradient colors={["#7C3AED", "#A78BFA"]} style={styles.ctaInner}>
+          <LinearGradient
+            colors={["#cc00ff", "#27d8ff"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.ctaInner}
+          >
             <Text style={styles.ctaText}>Get Started</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -85,10 +90,10 @@ const styles = StyleSheet.create({
   slide: { alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
   title: { color: "#fff", fontSize: 28, fontWeight: "900", marginTop: 12, textAlign: "center" },
   sub: { color: "#F3E8FF", textAlign: "center", marginTop: 8, paddingHorizontal: 16, fontSize: 18, fontWeight: "700" },
-  dots: { flexDirection: "row", justifyContent: "center", marginBottom: 10 },
+  dots: { position: "absolute", bottom: 48, left: 0, right: 0, flexDirection: "row", justifyContent: "center" },
   dot: { width: 8, height: 8, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.4)", marginHorizontal: 4 },
   dotActive: { backgroundColor: "#fff", width: 22 },
   cta: { marginTop: 18 },
-  ctaInner: { paddingVertical: 14, paddingHorizontal: 42, borderRadius: 14, alignItems: "center" },
+  ctaInner: { paddingVertical: 14, paddingHorizontal: 42, borderRadius: 16, alignItems: "center", shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, elevation: 4 },
   ctaText: { color: "#fff", fontWeight: "800", fontSize: 18 },
 });

@@ -16,7 +16,7 @@ import theme from "../theme/theme";
 
 const tabs = [
     { key: "Home", label: "Home", iconName: "home" },
-    { key: "Map", label: "Map", iconName: "place" },
+    { key: "Posts", label: "Posts", iconName: "dynamic-feed" },
     { key: "Chats", label: "Chat", iconName: "chat" },
     { key: "Favorites", label: "Favorites", iconName: "favorite" },
     { key: "Account", label: "Account", iconName: "person" },
@@ -28,8 +28,27 @@ export default function BottomTabBar({ state, descriptors, navigation }) {
     const bottomInset = insets.bottom || 0;
     const containerPaddingBottom = Platform.OS === "ios" ? bottomInset : Math.max(bottomInset, 8);
 
+    // Determine the currently focused nested route name (for stacks inside tabs)
+    const activeTabRoute = state.routes[activeIndex];
+    const nestedState = activeTabRoute?.state;
+
+    let nestedRouteName = activeTabRoute?.name;
+    let hasEditAvatarInStack = false;
+
+    if (nestedState && Array.isArray(nestedState.routes)) {
+        if (typeof nestedState.index === "number") {
+            nestedRouteName = nestedState.routes[nestedState.index]?.name || nestedRouteName;
+        }
+        hasEditAvatarInStack = nestedState.routes.some((r) => r.name === "EditAvatar");
+    }
+
+    // Hide the tab bar on PostProperty and always while EditAvatar is in the stack
+    if (nestedRouteName === "PostProperty" || hasEditAvatarInStack) {
+        return null;
+    }
+
     return (
-        <View style={styles.absoluteWrap} pointerEvents="box-none">
+        <View style={styles.wrap} pointerEvents="box-none">
             <BlurView
                 intensity={100}
                 tint="light"
@@ -119,11 +138,7 @@ function AnimatedIcon({ name, focused }) {
 }
 
 const styles = StyleSheet.create({
-    absoluteWrap: {
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
+    wrap: {
         paddingHorizontal: 16,
         paddingBottom: 0,
     },

@@ -15,6 +15,7 @@ export default function SearchBar({
     onChangeText,
     onFilterPress,
     placeholder,
+    onFocus,
 }) {
     const [focused, setFocused] = React.useState(false);
     const showClear = Boolean(value && value.length > 0);
@@ -52,7 +53,10 @@ export default function SearchBar({
                     underlineColorAndroid="transparent"
                     accessibilityLabel="Search properties"
                     returnKeyType="search"
-                    onFocus={() => setFocused(true)}
+                    onFocus={(e) => {
+                        setFocused(true);
+                        onFocus && onFocus(e);
+                    }}
                     onBlur={() => setFocused(false)}
                 />
                 {showClear && (

@@ -28,11 +28,16 @@ export default function AppHeader({ navigation, route, options }) {
                 </View>
 
                 <View style={styles.actions}>
-                    <TouchableOpacity accessibilityLabel="Search" style={styles.actionBtn}>
-                        <MaterialIcons name="search" size={22} color={theme.tokens.colors.textPrimary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity accessibilityLabel="Notifications" style={styles.actionBtn}>
-                        <MaterialIcons name="notifications-none" size={22} color={theme.tokens.colors.textPrimary} />
+                    <TouchableOpacity
+                        accessibilityLabel="Notifications"
+                        style={styles.actionBtn}
+                        onPress={() => navigation.navigate("Chats")}
+                    >
+                        <MaterialIcons
+                            name="notifications-none"
+                            size={22}
+                            color={theme.tokens.colors.textPrimary}
+                        />
                     </TouchableOpacity>
                 </View>
             </LinearGradient>

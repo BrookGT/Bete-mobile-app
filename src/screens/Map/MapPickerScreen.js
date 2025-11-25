@@ -23,29 +23,33 @@ export default function MapPickerScreen({ navigation, route }) {
     useEffect(() => {
         (async () => {
             if (!initial) {
-                const { status } =
-                    await Location.requestForegroundPermissionsAsync();
-                if (status !== "granted") {
-                    Alert.alert(
-                        "Permission required",
-                        "Location permission is needed to pick your current location."
-                    );
-                    return;
-                }
-                const loc = await Location.getCurrentPositionAsync({});
-                setRegion({
-                    latitude: loc.coords.latitude,
-                    longitude: loc.coords.longitude,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                });
-                setMarker({
-                    latitude: loc.coords.latitude,
-                    longitude: loc.coords.longitude,
-                });
+                await useCurrentLocation();
             }
         })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const useCurrentLocation = async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+            Alert.alert(
+                "Permission required",
+                "Location permission is needed to use your current location."
+            );
+            return;
+        }
+        const loc = await Location.getCurrentPositionAsync({});
+        setRegion({
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+        });
+        setMarker({
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+        });
+    };
 
     const onMapPress = (e) => {
         const { latitude, longitude } = e.nativeEvent.coordinate;
@@ -81,7 +85,12 @@ export default function MapPickerScreen({ navigation, route }) {
                 {marker && <Marker coordinate={marker} />}
             </MapView>
             <View style={styles.actions}>
-                <GradientButton title="Confirm location" onPress={confirm} />
+                <GradientButton
+                    title="Use my current location"
+                    onPress={useCurrentLocation}
+                    style={{ marginBottom: 8 }}
+                />
+                <GradientButton title="Use this location" onPress={confirm} />
             </View>
         </View>
     );

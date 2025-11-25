@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, FlatList } from "react-native";
+import { View, FlatList, Alert } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { getFavorites, toggleFavorite } from "../../utils/favorites";
-import { getProperty } from "../../services/mockProperties";
 import PropertyCard from "../../components/PropertyCard";
+import api from "../../services/api";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 export default function FavoritesScreen({ navigation }) {
     const paper = useTheme();
@@ -12,18 +14,44 @@ export default function FavoritesScreen({ navigation }) {
     const [favorites, setFavorites] = useState([]);
     const [items, setItems] = useState([]);
 
-    useEffect(() => {
-        (async () => {
+    const loadFavorites = useCallback(async () => {
+        try {
             const favs = await getFavorites();
             setFavorites(favs);
-            setItems(favs.map((id) => getProperty(id)).filter(Boolean));
-        })();
+            const resp = await api.get("/properties");
+            const all = resp.data || [];
+            setItems(all.filter((p) => favs.includes(p.id)));
+        } catch (e) {
+            setItems([]);
+        }
     }, []);
 
+    useEffect(() => {
+        loadFavorites();
+    }, [loadFavorites]);
+
+    useFocusEffect(
+        useCallback(() => {
+            loadFavorites();
+        }, [loadFavorites])
+    );
+
     const handleToggle = async (id) => {
-        const updated = await toggleFavorite(id);
-        setFavorites(updated);
-        setItems(updated.map((i) => getProperty(i)).filter(Boolean));
+        try {
+            const updated = await toggleFavorite(id);
+            setFavorites(updated);
+            const numId = Number(id);
+            const added = updated.includes(numId);
+            Alert.alert(
+                "Favorites",
+                added ? "Item added to favorites" : "Item removed from favorites"
+            );
+            const resp = await api.get("/properties");
+            const all = resp.data || [];
+            setItems(all.filter((p) => updated.includes(p.id)));
+        } catch (e) {
+            Alert.alert("Favorites", "Could not update favorites");
+        }
     };
 
     if (!items.length)
@@ -43,9 +71,16 @@ export default function FavoritesScreen({ navigation }) {
 
     return (
         <FlatList
-            contentContainerStyle={{ padding: 12, paddingBottom: (insets.bottom || 0) + 200 }}
+            contentContainerStyle={{ paddingHorizontal: 12, paddingTop: (insets.top || 0) + 24, paddingBottom: (insets.bottom || 0) + 200 }}
             data={items}
             keyExtractor={(i) => i.id}
+            ListHeaderComponent={() => (
+                <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 20, fontWeight: "700", color: paper.colors.text }}>
+                        Favorites
+                    </Text>
+                </View>
+            )}
             renderItem={({ item }) => (
                 <PropertyCard
                     property={item}
@@ -56,7 +91,7 @@ export default function FavoritesScreen({ navigation }) {
                         })
                     }
                     onToggleFav={() => handleToggle(item.id)}
-                    isFav={true}
+                    isFav={favorites.includes(Number(item.id))}
                 />
             )}
         />

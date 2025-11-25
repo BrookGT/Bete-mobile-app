@@ -12,7 +12,7 @@ function ProgressBar({ progress = 0 }) {
   );
 }
 
-export default function RentalCard({ rental, onPress, onRemind, onPay }) {
+export default function RentalCard({ rental, onPress, onRemind, onPay, onInvite }) {
   const due = new Date(rental.nextDue);
   const now = new Date();
   const daysTotal = rental.cycleDays || 30;
@@ -72,6 +72,12 @@ export default function RentalCard({ rental, onPress, onRemind, onPay }) {
               <Text style={styles.secondaryText}>Remind</Text>
             </TouchableOpacity>
             <View style={{ flex: 1 }} />
+            {rental.role === "owner" && onInvite && (
+              <TouchableOpacity onPress={onInvite} style={[styles.secondaryBtn, { marginRight: 8 }] }>
+                <MaterialIcons name="person-add-alt" size={16} color={theme.tokens.colors.primary} />
+                <Text style={styles.secondaryText}>Invite</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={onPay} style={styles.primaryBtn}>
               <Text style={styles.primaryText}>{rental.role === "owner" ? "View" : "Pay"}</Text>
               <MaterialIcons name="chevron-right" size={18} color="#fff" />

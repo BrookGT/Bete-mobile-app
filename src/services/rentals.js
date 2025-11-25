@@ -15,4 +15,19 @@ export async function endRental(rentalId) {
   return data;
 }
 
-export default { listMyRentals, createReminder, endRental };
+export async function createInvite(rentalId, inviteeEmail) {
+  const { data } = await api.post(`/rentals/${rentalId}/invites`, inviteeEmail ? { inviteeEmail } : {});
+  return data; // { id, code, ... }
+}
+
+export async function listInvites(rentalId) {
+  const { data } = await api.get(`/rentals/${rentalId}/invites`);
+  return data;
+}
+
+export async function acceptInvite(code) {
+  const { data } = await api.post(`/rentals/invites/${code}/accept`);
+  return data;
+}
+
+export default { listMyRentals, createReminder, endRental, createInvite, listInvites, acceptInvite };

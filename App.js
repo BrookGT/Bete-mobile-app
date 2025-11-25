@@ -8,6 +8,7 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import { Provider as PaperProvider } from "react-native-paper";
 import theme from "./src/theme/theme";
 import { AuthProvider } from "./src/context/AuthContext";
+import { ToastProvider } from "./src/context/ToastContext";
 import { useFonts } from "@expo-google-fonts/poppins";
 import {
     Poppins_400Regular,
@@ -28,9 +29,11 @@ export default function App() {
         <PaperProvider theme={theme.paperTheme}>
             <SafeAreaProvider>
                 <AuthProvider>
-                    <NavigationContainer>
-                        <RootNavigator />
-                    </NavigationContainer>
+                    <ToastProvider>
+                        <NavigationContainer>
+                            <RootNavigator />
+                        </NavigationContainer>
+                    </ToastProvider>
                 </AuthProvider>
                 <StatusBar style="auto" />
             </SafeAreaProvider>

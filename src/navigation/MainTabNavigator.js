@@ -6,10 +6,12 @@ import PropertyDetailScreen from "../screens/Property/PropertyDetailScreen";
 import PostPropertyScreen from "../screens/Property/PostPropertyScreen";
 import MapPickerScreen from "../screens/Map/MapPickerScreen";
 import MapScreen from "../screens/Map/MapScreen";
+import PropertyMapScreen from "../screens/Map/PropertyMapScreen";
 import ChatListScreen from "../screens/Chat/ChatListScreen";
 import ChatScreen from "../screens/Chat/ChatScreen";
 import FavoritesScreen from "../screens/Property/FavoritesScreen";
 import AccountScreen from "../screens/Account/AccountScreen";
+import EditAvatarScreen from "../screens/Account/EditAvatarScreen";
 import LoginScreen from "../screens/Auth/LoginScreen";
 import SignupScreen from "../screens/Auth/SignupScreen";
 import RentManagerScreen from "../screens/Rent/RentManagerScreen";
@@ -24,11 +26,42 @@ function HomeStack() {
     return (
         <Stack.Navigator>
             <Stack.Screen
-                name="PropertyList"
+                name="HomeList"
                 component={PropertyListScreen}
                 options={{
                     header: (props) => <AppHeader {...props} />,
                 }}
+                initialParams={{ mode: "home" }}
+            />
+            <Stack.Screen
+                name="PropertyDetail"
+                component={PropertyDetailScreen}
+                options={{ title: "Property" }}
+            />
+            <Stack.Screen
+                name="PropertyMapFull"
+                component={PropertyMapScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="ExploreMap"
+                component={MapScreen}
+                options={{ title: "Map" }}
+            />
+        </Stack.Navigator>
+    );
+}
+
+function PostsStack() {
+    return (
+        <Stack.Navigator>
+            <Stack.Screen
+                name="PostsList"
+                component={PropertyListScreen}
+                options={{
+                    headerShown: false,
+                }}
+                initialParams={{ mode: "posts" }}
             />
             <Stack.Screen
                 name="PostProperty"
@@ -44,6 +77,11 @@ function HomeStack() {
                 name="PropertyDetail"
                 component={PropertyDetailScreen}
                 options={{ title: "Property" }}
+            />
+            <Stack.Screen
+                name="ExploreMap"
+                component={MapScreen}
+                options={{ title: "Map" }}
             />
         </Stack.Navigator>
     );
@@ -65,6 +103,11 @@ function AccountStack() {
                 name="AccountMain"
                 component={AccountScreen}
                 options={{ title: "Account" }}
+            />
+            <Stack.Screen
+                name="EditAvatar"
+                component={EditAvatarScreen}
+                options={{ title: "Profile photo" }}
             />
             <Stack.Screen
                 name="RentManager"
@@ -101,9 +144,13 @@ export default function MainTabNavigator() {
                 }}
             />
             <Tab.Screen
-                name="Map"
-                component={MapScreen}
-                options={{ headerShown: false }}
+                name="Posts"
+                component={PostsStack}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialIcons name="dynamic-feed" size={size} color={color} />
+                    ),
+                }}
             />
             <Tab.Screen
                 name="Chats"

@@ -5,7 +5,12 @@ const KEY = "bete:favorites";
 export async function getFavorites() {
     try {
         const raw = await AsyncStorage.getItem(KEY);
-        return raw ? JSON.parse(raw) : [];
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed)
+            ? parsed
+                  .map((v) => Number(v))
+                  .filter((v) => typeof v === "number" && !Number.isNaN(v))
+            : [];
     } catch (e) {
         return [];
     }
@@ -13,9 +18,10 @@ export async function getFavorites() {
 
 export async function toggleFavorite(id) {
     try {
-        const favs = await getFavorites();
-        const idx = favs.indexOf(id);
-        if (idx === -1) favs.push(id);
+        const target = Number(id);
+        let favs = await getFavorites();
+        const idx = favs.indexOf(target);
+        if (idx === -1) favs.push(target);
         else favs.splice(idx, 1);
         await AsyncStorage.setItem(KEY, JSON.stringify(favs));
         return favs;

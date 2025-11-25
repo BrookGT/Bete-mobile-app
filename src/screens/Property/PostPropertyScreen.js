@@ -49,8 +49,10 @@ export default function PostPropertyScreen({ navigation, route }) {
                 allowsEditing: false,
                 quality: 0.8,
             });
-            if (!result.cancelled) {
-                setImages((prev) => [...prev, { uri: result.uri }]);
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                const asset = result.assets[0];
+                setImages((prev) => [...prev, { uri: asset.uri }]);
             }
         } catch (e) {
             console.warn("image pick error", e.message);
@@ -65,6 +67,13 @@ export default function PostPropertyScreen({ navigation, route }) {
     const submit = async () => {
         if (!title || !price)
             return Alert.alert("Missing", "Please provide title and price");
+
+        if (!location) {
+            return Alert.alert(
+                "Location required",
+                "Please pick and confirm a location on the map before creating the property."
+            );
+        }
         setLoading(true);
         try {
             // upload images first (take the first URL for backend's imageUrl)
@@ -105,7 +114,10 @@ export default function PostPropertyScreen({ navigation, route }) {
     };
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+        >
             <Text style={styles.title}>Post a property</Text>
             <TextInput
                 placeholder="Title"
@@ -188,7 +200,7 @@ export default function PostPropertyScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-    container: { padding: 16 },
+    container: { padding: 16, paddingBottom: 32 },
     title: { fontSize: 20, fontWeight: "700", marginBottom: 12 },
     input: {
         borderWidth: 1,

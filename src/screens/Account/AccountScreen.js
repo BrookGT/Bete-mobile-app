@@ -16,38 +16,30 @@ export default function AccountScreen({ navigation }) {
         <View style={{ flex: 1, backgroundColor: paper.colors.background }}>
             <View style={styles.header}>
                 <View style={{ position: "relative" }}>
-                    {user?.avatarUrl ? (
-                        <Avatar.Image size={72} source={{ uri: user.avatarUrl }} />
-                    ) : (
-                        <Avatar.Text
-                            size={72}
-                            label={
-                                user?.name
-                                    ? user.name
-                                          .split(" ")
-                                          .map((n) => n[0])
-                                          .slice(0, 2)
-                                          .join("")
-                                    : "U"
-                            }
-                        />
-                    )}
                     <TouchableOpacity
                         activeOpacity={0.9}
-                        onPress={async () => {
-                            try {
-                                const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                                if (!perm.granted) return;
-                                const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaType.Images, quality: 0.8 });
-                                if (picked.canceled) return;
-                                const uri = picked.assets?.[0]?.uri;
-                                if (!uri) return;
-                                const url = await uploadImage(uri);
-                                if (!url) return;
-                                await api.put("/users/me", { avatarUrl: url });
-                                await refreshMe();
-                            } catch {}
-                        }}
+                        onPress={() => navigation.navigate("EditAvatar")}
+                    >
+                        {user?.avatarUrl ? (
+                            <Avatar.Image size={72} source={{ uri: user.avatarUrl }} />
+                        ) : (
+                            <Avatar.Text
+                                size={72}
+                                label={
+                                    user?.name
+                                        ? user.name
+                                              .split(" ")
+                                              .map((n) => n[0])
+                                              .slice(0, 2)
+                                              .join("")
+                                        : "U"
+                                }
+                            />
+                        )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        onPress={() => navigation.navigate("EditAvatar")}
                         style={styles.editBtn}
                     >
                         <LinearGradient colors={["#7C3AED", "#A78BFA"]} style={styles.editBtnInner}>
@@ -91,8 +83,9 @@ export default function AccountScreen({ navigation }) {
                 <GradientButton
                     title="My Properties"
                     onPress={() =>
-                        navigation.navigate("AccountMain", {
-                            screen: "MyProperties",
+                        navigation.navigate("Posts", {
+                            screen: "PostsList",
+                            params: { mode: "mine" },
                         })
                     }
                     colors={["#6BA6FF", "#8E7CFF"]}
@@ -121,8 +114,8 @@ const styles = StyleSheet.create({
         position: "absolute",
         right: -6,
         bottom: -6,
-        width: 48,
-        height: 48,
+        width: 30,
+        height: 30,
         borderRadius: 24,
         overflow: "hidden",
         elevation: 3,

@@ -46,9 +46,8 @@ export default function MapScreen({ navigation }) {
                         }}
                         title={m.title}
                         onPress={() =>
-                            navigation.navigate("Home", {
-                                screen: "PropertyDetail",
-                                params: { id: m.id },
+                            navigation.navigate("PropertyDetail", {
+                                id: m.id,
                             })
                         }
                     />

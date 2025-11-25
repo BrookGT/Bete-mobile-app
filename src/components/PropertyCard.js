@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import theme from "../theme/theme";
-import { Heart } from "lucide-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 // local assets (use nice house photos you added)
 const localImages = [
@@ -26,10 +26,17 @@ export default function PropertyCard({
     onToggleFav,
     isFav,
 }) {
+    const primaryUrl = property?.imageUrl;
     const first = property?.images?.[0];
+    const urlCandidate =
+        primaryUrl && typeof primaryUrl === "string"
+            ? primaryUrl
+            : first && typeof first === "string"
+            ? first
+            : null;
     const imageSource =
-        first && typeof first === "string" && first.startsWith("http")
-            ? { uri: first }
+        urlCandidate && typeof urlCandidate === "string"
+            ? { uri: urlCandidate }
             : pickLocal(property);
     return (
         <TouchableOpacity
@@ -40,9 +47,9 @@ export default function PropertyCard({
             <Image source={imageSource} style={styles.image} />
             <View style={styles.imageOverlay} />
             <TouchableOpacity onPress={onToggleFav} style={styles.heartWrap}>
-                <Heart
-                    width={18}
-                    height={18}
+                <MaterialIcons
+                    name={isFav ? "favorite" : "favorite-border"}
+                    size={20}
                     color={isFav ? theme.tokens.colors.error : "#9CA3AF"}
                 />
             </TouchableOpacity>

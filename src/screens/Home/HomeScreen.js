@@ -59,6 +59,9 @@ export default function HomeScreen({ navigation }) {
                 contentContainerStyle={{
                     paddingBottom: (insets.bottom || 0) + 220,
                 }}
+                ListFooterComponent={() => (
+                    <View style={{ height: (insets.bottom || 0) + 140 }} />
+                )}
                 ListHeaderComponent={() => (
                     <>
                         <HeaderGreeting name="Nahom" />

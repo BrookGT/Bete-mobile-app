@@ -19,6 +19,9 @@ export function AuthProvider({ children }) {
                     setUser(resp.data);
                 } catch (e) {
                     console.warn("Failed to fetch /me", e.message);
+                    await AsyncStorage.removeItem("bete:token");
+                    setToken(null);
+                    setUser(null);
                 }
             }
             setLoading(false);
