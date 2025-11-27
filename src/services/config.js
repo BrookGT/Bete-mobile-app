@@ -16,8 +16,8 @@
 
  const DEV_API_URL = getDevApiUrl();
 
- // TODO: replace with your deployed backend URL when you have one
- const PROD_API_URL = 'https://your-production-backend.com';
+ // Deployed backend URL on Render for preview/production builds
+ const PROD_API_URL = 'https://bete-mobile-app-backend.onrender.com';
 
  export const API_URL =
    process.env.NODE_ENV === 'development' ? DEV_API_URL : PROD_API_URL;
