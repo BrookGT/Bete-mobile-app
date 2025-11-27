@@ -1,40 +1,44 @@
 import React, { useContext } from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import { Avatar, Title, Paragraph, useTheme, IconButton } from "react-native-paper";
+import { View, StyleSheet, TouchableOpacity, Text, Image, ScrollView } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import GradientButton from "../../components/GradientButton";
-import * as ImagePicker from "expo-image-picker";
-import { uploadImage } from "../../services/upload";
-import api from "../../services/api";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AccountScreen({ navigation }) {
-    const { user, logout, refreshMe } = useContext(AuthContext);
-    const paper = useTheme();
+    const { user, logout } = useContext(AuthContext);
+    const insets = useSafeAreaInsets();
+
+    const getInitials = (name) => {
+        if (!name) return "U";
+        return name
+            .split(" ")
+            .map((n) => n[0])
+            .slice(0, 2)
+            .join("")
+            .toUpperCase();
+    };
 
     return (
-        <View style={{ flex: 1, backgroundColor: paper.colors.background }}>
-            <View style={styles.header}>
-                <View style={{ position: "relative" }}>
+        <View style={styles.container}>
+            <LinearGradient
+                colors={["#8B5CF6", "#A78BFA"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.headerGradient, { paddingTop: insets.top + 20 }]}
+            >
+                <View style={styles.avatarWrap}>
                     <TouchableOpacity
                         activeOpacity={0.9}
                         onPress={() => navigation.navigate("EditAvatar")}
                     >
                         {user?.avatarUrl ? (
-                            <Avatar.Image size={72} source={{ uri: user.avatarUrl }} />
+                            <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
                         ) : (
-                            <Avatar.Text
-                                size={72}
-                                label={
-                                    user?.name
-                                        ? user.name
-                                              .split(" ")
-                                              .map((n) => n[0])
-                                              .slice(0, 2)
-                                              .join("")
-                                        : "U"
-                                }
-                            />
+                            <View style={styles.avatarFallback}>
+                                <Text style={styles.avatarText}>{getInitials(user?.name)}</Text>
+                            </View>
                         )}
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -42,17 +46,14 @@ export default function AccountScreen({ navigation }) {
                         onPress={() => navigation.navigate("EditAvatar")}
                         style={styles.editBtn}
                     >
-                        <LinearGradient colors={["#7C3AED", "#A78BFA"]} style={styles.editBtnInner}>
-                            <IconButton icon="pencil" size={20} iconColor="#fff" style={{ margin: 0 }} />
-                        </LinearGradient>
+                        <MaterialIcons name="camera-alt" size={16} color="#8B5CF6" />
                     </TouchableOpacity>
                 </View>
-                <Title style={{ marginTop: 8 }}>{user?.name || "Guest"}</Title>
-                <Paragraph style={{ color: paper.colors.muted }}>
-                    {user?.email || "Not signed in"}
-                </Paragraph>
-            </View>
-            <View style={{ padding: 16 }}>
+                <Text style={styles.userName}>{user?.name || "Guest"}</Text>
+                <Text style={styles.userEmail}>{user?.email || "Not signed in"}</Text>
+            </LinearGradient>
+
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 <TouchableOpacity
                     activeOpacity={0.9}
                     onPress={() => navigation.navigate("RentManager")}
@@ -77,7 +78,11 @@ export default function AccountScreen({ navigation }) {
                 </TouchableOpacity>
                 <GradientButton
                     title="Add Property"
-                    onPress={() => navigation.navigate("PostProperty")}
+                    onPress={() =>
+                        navigation.navigate("Posts", {
+                            screen: "PostProperty",
+                        })
+                    }
                     style={{ marginBottom: 8 }}
                 />
                 <GradientButton
@@ -97,34 +102,76 @@ export default function AccountScreen({ navigation }) {
                     colors={["#FF6B6B", "#FF8E8E"]}
                     style={{ marginTop: 24 }}
                 />
-            </View>
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    header: {
-        padding: 24,
+    container: {
+        flex: 1,
+        backgroundColor: "#F8FAFC",
+    },
+    headerGradient: {
         alignItems: "center",
-        backgroundColor: "#fff",
-        borderBottomWidth: 1,
-        borderColor: "#eee",
+        paddingBottom: 28,
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+    },
+    avatarWrap: {
+        position: "relative",
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 4,
+        borderColor: "rgba(255,255,255,0.5)",
+    },
+    avatarFallback: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: "rgba(255,255,255,0.3)",
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 4,
+        borderColor: "rgba(255,255,255,0.5)",
+    },
+    avatarText: {
+        fontSize: 36,
+        fontWeight: "700",
+        color: "#FFFFFF",
     },
     editBtn: {
         position: "absolute",
-        right: -6,
-        bottom: -6,
-        width: 30,
-        height: 30,
-        borderRadius: 24,
-        overflow: "hidden",
-        elevation: 3,
-    },
-    editBtnInner: {
-        flex: 1,
+        right: 0,
+        bottom: 0,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: "#FFFFFF",
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: 24,
+        shadowColor: "#000",
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    userName: {
+        fontSize: 24,
+        fontWeight: "700",
+        color: "#FFFFFF",
+        marginTop: 12,
+    },
+    userEmail: {
+        fontSize: 14,
+        color: "rgba(255,255,255,0.85)",
+        marginTop: 4,
+    },
+    content: {
+        flex: 1,
+        padding: 16,
     },
     gradientBtn: {
         paddingVertical: 14,

@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import theme from "../theme/theme";
+import { UnreadContext } from "../context/UnreadContext";
 
 export default function AppHeader({ navigation, route, options }) {
     const insets = useSafeAreaInsets();
-    const topPad = (insets.top || 0) + (theme.tokens.spacing.xs || 4);
+    const topPad = (insets.top || 0) + 16;
+    const { unreadCount } = useContext(UnreadContext);
 
     return (
         <View style={[styles.wrap, { paddingTop: topPad }]}
@@ -33,11 +35,20 @@ export default function AppHeader({ navigation, route, options }) {
                         style={styles.actionBtn}
                         onPress={() => navigation.navigate("Chats")}
                     >
-                        <MaterialIcons
-                            name="notifications-none"
-                            size={22}
-                            color={theme.tokens.colors.textPrimary}
-                        />
+                        <View>
+                            <MaterialIcons
+                                name={unreadCount > 0 ? "notifications-active" : "notifications-none"}
+                                size={24}
+                                color={unreadCount > 0 ? "#667EEA" : theme.tokens.colors.textPrimary}
+                            />
+                            {unreadCount > 0 && (
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>
+                                        {unreadCount > 9 ? "9+" : unreadCount}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
                     </TouchableOpacity>
                 </View>
             </LinearGradient>
@@ -73,4 +84,23 @@ const styles = StyleSheet.create({
     },
     actions: { flexDirection: "row", alignItems: "center" },
     actionBtn: { marginLeft: 12 },
+    badge: {
+        position: "absolute",
+        top: -4,
+        right: -6,
+        backgroundColor: "#EF4444",
+        borderRadius: 10,
+        minWidth: 18,
+        height: 18,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 4,
+        borderWidth: 2,
+        borderColor: "#FFFFFF",
+    },
+    badgeText: {
+        color: "#FFFFFF",
+        fontSize: 10,
+        fontWeight: "700",
+    },
 });

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import theme from "../theme/theme";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 // local assets (use nice house photos you added)
 const localImages = [
@@ -25,6 +26,7 @@ export default function PropertyCard({
     onPress,
     onToggleFav,
     isFav,
+    onDelete,
 }) {
     const primaryUrl = property?.imageUrl;
     const first = property?.images?.[0];
@@ -53,16 +55,37 @@ export default function PropertyCard({
                     color={isFav ? theme.tokens.colors.error : "#9CA3AF"}
                 />
             </TouchableOpacity>
-            <View style={styles.priceBadge}>
-                <Text style={styles.priceText}>${property.price || 1200}</Text>
-            </View>
+            {onDelete && (
+                <TouchableOpacity
+                    onPress={onDelete}
+                    style={styles.deleteWrap}
+                    activeOpacity={0.85}
+                >
+                    <MaterialIcons
+                        name="delete-outline"
+                        size={18}
+                        color={theme.tokens.colors.error}
+                    />
+                </TouchableOpacity>
+            )}
+            <LinearGradient
+                colors={["#667EEA", "#764BA2"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.priceBadge}
+            >
+                <Text style={styles.priceText}>ETB {property.price?.toLocaleString() || "1,200"}</Text>
+            </LinearGradient>
             <View style={styles.body}>
                 <Text style={styles.title} numberOfLines={1}>
                     {property.title || "Cozy Apartment"}
                 </Text>
-                <Text style={styles.loc} numberOfLines={1}>
-                    {property.location || "Unknown"}
-                </Text>
+                <View style={styles.locRow}>
+                    <MaterialIcons name="location-on" size={14} color="#64748B" />
+                    <Text style={styles.loc} numberOfLines={1}>
+                        {property.location || "Unknown"}
+                    </Text>
+                </View>
             </View>
         </TouchableOpacity>
     );
@@ -96,29 +119,45 @@ const styles = StyleSheet.create({
         padding: 8,
         borderRadius: 20,
     },
+    deleteWrap: {
+        position: "absolute",
+        right: 12,
+        top: 52,
+        backgroundColor: "rgba(255,255,255,0.95)",
+        padding: 6,
+        borderRadius: 18,
+    },
     priceBadge: {
         position: "absolute",
         left: 12,
         top: 160,
-        backgroundColor: "rgba(255,255,255,0.95)",
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 18,
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 6,
-        elevation: 2,
+        borderRadius: 20,
+        shadowColor: "#667EEA",
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 4,
     },
     priceText: {
-        color: theme.tokens.colors.primary,
-        fontFamily: theme.tokens.font.semi || theme.theme.font.semi,
+        color: "#FFFFFF",
+        fontWeight: "700",
         fontSize: 14,
     },
     body: { padding: theme.tokens.spacing.md, paddingTop: 12 },
     title: {
         fontSize: 16,
-        fontFamily: theme.tokens.font.semi || theme.theme.font.semi,
-        color: theme.tokens.colors.textPrimary,
+        fontWeight: "600",
+        color: "#1E293B",
     },
-    loc: { color: theme.tokens.colors.textSecondary, marginTop: 4 },
+    locRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 6,
+    },
+    loc: {
+        color: "#64748B",
+        marginLeft: 4,
+        flex: 1,
+    },
 });

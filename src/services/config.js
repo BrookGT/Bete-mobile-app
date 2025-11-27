@@ -10,14 +10,18 @@
      return 'http://localhost:5000';
    }
 
-   const host = hostUri.split(':')[0];
-   return `http://${host}:5000`;
- }
+  const host = hostUri.split(':')[0];
+  return `http://${host}:5000`;
+}
 
- const DEV_API_URL = getDevApiUrl();
+const DEV_API_URL = getDevApiUrl();
 
- // Deployed backend URL on Render for preview/production builds
- const PROD_API_URL = 'https://bete-mobile-app-backend.onrender.com';
+// Deployed backend URL on Render for preview/production builds
+const PROD_API_URL = 'https://bete-mobile-app-backend.onrender.com';
 
- export const API_URL =
-   process.env.NODE_ENV === 'development' ? DEV_API_URL : PROD_API_URL;
+// Set to true to always use deployed backend (even in Expo Go)
+// Set to false to use local backend during development
+const USE_DEPLOYED_BACKEND = true;
+
+export const API_URL = USE_DEPLOYED_BACKEND ? PROD_API_URL : 
+  (process.env.NODE_ENV === 'development' ? DEV_API_URL : PROD_API_URL);

@@ -89,9 +89,9 @@ function PostsStack() {
 
 function ChatStack() {
     return (
-        <Stack.Navigator>
-            <Stack.Screen name="ChatList" component={ChatListScreen} options={{ title: "Messages" }} />
-            <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Chat" }} />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="ChatList" component={ChatListScreen} />
+            <Stack.Screen name="Chat" component={ChatScreen} />
         </Stack.Navigator>
     );
 }
@@ -102,7 +102,7 @@ function AccountStack() {
             <Stack.Screen
                 name="AccountMain"
                 component={AccountScreen}
-                options={{ title: "Account" }}
+                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="EditAvatar"
@@ -151,6 +151,15 @@ export default function MainTabNavigator() {
                         <MaterialIcons name="dynamic-feed" size={size} color={color} />
                     ),
                 }}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        // Always go back to the list when tapping the Posts tab icon
+                        navigation.navigate("Posts", {
+                            screen: "PostsList",
+                            params: { mode: "posts" },
+                        });
+                    },
+                })}
             />
             <Tab.Screen
                 name="Chats"
@@ -165,6 +174,7 @@ export default function MainTabNavigator() {
                 name="Favorites"
                 component={FavoritesScreen}
                 options={{
+                    headerShown: false,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialIcons
                             name="favorite"

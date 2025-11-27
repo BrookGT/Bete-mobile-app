@@ -9,6 +9,7 @@ import { Provider as PaperProvider } from "react-native-paper";
 import theme from "./src/theme/theme";
 import { AuthProvider } from "./src/context/AuthContext";
 import { ToastProvider } from "./src/context/ToastContext";
+import { UnreadProvider } from "./src/context/UnreadContext";
 import { useFonts } from "@expo-google-fonts/poppins";
 import {
     Poppins_400Regular,
@@ -29,13 +30,15 @@ export default function App() {
         <PaperProvider theme={theme.paperTheme}>
             <SafeAreaProvider>
                 <AuthProvider>
-                    <ToastProvider>
-                        <NavigationContainer>
-                            <RootNavigator />
-                        </NavigationContainer>
-                    </ToastProvider>
+                    <UnreadProvider>
+                        <ToastProvider>
+                            <NavigationContainer>
+                                <RootNavigator />
+                            </NavigationContainer>
+                        </ToastProvider>
+                    </UnreadProvider>
                 </AuthProvider>
-                <StatusBar style="auto" />
+                <StatusBar style="dark" backgroundColor="#F8FAFC" />
             </SafeAreaProvider>
         </PaperProvider>
     );

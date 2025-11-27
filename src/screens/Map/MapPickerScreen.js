@@ -6,6 +6,16 @@ import GradientButton from "../../components/GradientButton";
 
 export default function MapPickerScreen({ navigation, route }) {
     const initial = route.params?.initialLocation;
+
+    // Fallback region (centered roughly on Addis Ababa) so the map
+    // never stays on an infinite loading state even if GPS fails.
+    const defaultRegion = {
+        latitude: 9.0084,
+        longitude: 38.7636,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+    };
+
     const [region, setRegion] = useState(
         initial
             ? {
@@ -30,25 +40,41 @@ export default function MapPickerScreen({ navigation, route }) {
     }, []);
 
     const useCurrentLocation = async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== "granted") {
+                Alert.alert(
+                    "Permission required",
+                    "Location permission is needed to use your current location. You can still tap on the map to pick a place manually."
+                );
+                // Fall back to a default region so the user can still see the map.
+                if (!region) {
+                    setRegion(defaultRegion);
+                }
+                return;
+            }
+
+            const loc = await Location.getCurrentPositionAsync({});
+            setRegion({
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            });
+            setMarker({
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+            });
+        } catch (e) {
+            console.warn("useCurrentLocation error", e);
             Alert.alert(
-                "Permission required",
-                "Location permission is needed to use your current location."
+                "Location error",
+                "Could not get your current location. You can still tap on the map to choose a place."
             );
-            return;
+            if (!region) {
+                setRegion(defaultRegion);
+            }
         }
-        const loc = await Location.getCurrentPositionAsync({});
-        setRegion({
-            latitude: loc.coords.latitude,
-            longitude: loc.coords.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-        });
-        setMarker({
-            latitude: loc.coords.latitude,
-            longitude: loc.coords.longitude,
-        });
     };
 
     const onMapPress = (e) => {

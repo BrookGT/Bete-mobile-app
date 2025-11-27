@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function PropertyListScreen({ navigation, route }) {
     const paper = useTheme();
@@ -29,9 +30,17 @@ export default function PropertyListScreen({ navigation, route }) {
     const [maxPrice, setMaxPrice] = useState("");
     const [locationFilter, setLocationFilter] = useState("");
 
-    const mode = route?.params?.mode || "posts";
-    const ownerIdParam =
-        mode === "mine" && user?.id ? user.id : route?.params?.ownerId;
+    const initialMode = route?.params?.mode || "posts";
+    const [showMine, setShowMine] = useState(initialMode === "mine");
+    const mode = initialMode === "mine" ? "posts" : initialMode;
+
+    // If we are already on the Posts screen and Account navigates here with
+    // params.mode === "mine", turn on the toggle so the UI matches the intent.
+    useEffect(() => {
+        if (route?.params?.mode === "mine") {
+            setShowMine(true);
+        }
+    }, [route?.params?.mode]);
 
     useEffect(() => {
         (async () => {
@@ -50,12 +59,18 @@ export default function PropertyListScreen({ navigation, route }) {
             (async () => {
                 setFavorites(await getFavorites());
             })();
-        }, [])
+
+            // If navigated here with mode === 'mine' (from Account), keep the
+            // "My properties only" toggle in sync every time the screen focuses.
+            if (route?.params?.mode === "mine") {
+                setShowMine(true);
+            }
+        }, [route?.params?.mode])
     );
 
     const filtered = properties
         .filter((p) => {
-            if (ownerIdParam && p.ownerId !== ownerIdParam) return false;
+            if (showMine && user?.id && p.ownerId !== user.id) return false;
             if (
                 query &&
                 !`${p.title} ${p.description}`
@@ -91,22 +106,27 @@ export default function PropertyListScreen({ navigation, route }) {
         }
     };
 
-    const demoHomes = [
-        {
-            id: "demo-1",
-            title: "Modern Loft in Bole",
-            price: 18000,
-            location: "Bole, Addis Ababa",
-            description: "Bright 2BR loft close to cafes and the airport.",
-        },
-        {
-            id: "demo-2",
-            title: "Family Villa with Garden",
-            price: 4200000,
-            location: "CMC, Addis Ababa",
-            description: "Spacious 4BR villa with private garden and parking.",
-        },
-    ];
+    const handleDelete = (id) => {
+        Alert.alert(
+            "Delete property",
+            "Are you sure you want to delete this property? This cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await api.delete(`/properties/${id}`);
+                            setProperties((prev) => prev.filter((p) => p.id !== id));
+                        } catch (e) {
+                            Alert.alert("Error", "Could not delete property");
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     return (
         <View
@@ -115,6 +135,16 @@ export default function PropertyListScreen({ navigation, route }) {
                 { backgroundColor: paper.colors.background },
             ]}
         >
+            {/* Decorative gradient shape at top - only for Posts screen */}
+            {mode === "posts" && (
+                <LinearGradient
+                    colors={["#10B981", "#34D399"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.topGradient}
+                />
+            )}
+
             {/* Filters modal */}
             <Modal
                 visible={filterModalVisible}
@@ -199,6 +229,39 @@ export default function PropertyListScreen({ navigation, route }) {
                                         : undefined
                                 }
                             />
+
+                            {mode === "posts" && user?.id && (
+                                <View style={{ marginTop: 10, marginBottom: 4 }}>
+                                    <TouchableOpacity
+                                        activeOpacity={0.9}
+                                        onPress={() => setShowMine((prev) => !prev)}
+                                        style={[
+                                            styles.myToggle,
+                                            showMine
+                                                ? styles.myToggleActive
+                                                : styles.myToggleInactive,
+                                        ]}
+                                    >
+                                        <View
+                                            style={[
+                                                styles.myToggleThumb,
+                                                showMine
+                                                    ? styles.myToggleThumbOn
+                                                    : styles.myToggleThumbOff,
+                                            ]}
+                                        />
+                                        <Text
+                                            style={[
+                                                styles.myToggleLabel,
+                                                showMine && styles.myToggleLabelActive,
+                                            ]}
+                                        >
+                                            My properties only
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
                             <View style={styles.filtersRow}>
                                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                                     <TouchableOpacity
@@ -270,37 +333,10 @@ export default function PropertyListScreen({ navigation, route }) {
                                 </View>
                             </View>
                         </View>
-                        {mode !== "posts" && (
-                            <>
+                        {mode === "home" && (
+                            <View style={{ marginBottom: 12 }}>
                                 <PromoBanner />
-                                <View
-                                    style={{
-                                        paddingHorizontal: 4,
-                                        marginTop: 8,
-                                        marginBottom: 12,
-                                    }}
-                                >
-                                    <Text style={{ fontWeight: "700", fontSize: 16 }}>
-                                        Recommended for you
-                                    </Text>
-                                </View>
-                                {demoHomes.map((item) => (
-                                    <RNView key={item.id} style={{ marginBottom: 8 }}>
-                                        <PropertyCard
-                                            property={item}
-                                            onPress={() =>
-                                                navigation.navigate("PropertyDetail", {
-                                                    id: item.id,
-                                                    fromDemo: true,
-                                                })
-                                            }
-                                            onToggleFav={() => {}}
-                                            isFav={false}
-                                        />
-                                    </RNView>
-                                ))}
-                                <View style={{ height: 8 }} />
-                            </>
+                            </View>
                         )}
                     </>
                 )}
@@ -315,9 +351,28 @@ export default function PropertyListScreen({ navigation, route }) {
                             }
                             onToggleFav={() => handleToggle(item.id)}
                             isFav={favorites.includes(Number(item.id))}
+                            onDelete={
+                                user && item.ownerId === user.id
+                                    ? () => handleDelete(item.id)
+                                    : undefined
+                            }
                         />
                     </RNView>
                 )}
+                ListEmptyComponent={
+                    mode === "posts" && showMine
+                        ? () => (
+                              <View style={{ padding: 32, alignItems: "center" }}>
+                                  <Text style={{ fontSize: 16, fontWeight: "600" }}>
+                                      You havent posted anything yet.
+                                  </Text>
+                                  <Text style={{ marginTop: 4, color: "#6B7280" }}>
+                                      Tap "+ Post" to create your first property.
+                                  </Text>
+                              </View>
+                          )
+                        : undefined
+                }
                 showsVerticalScrollIndicator={true}
             />
             {/* Removed floating FAB in favor of inline Post button */}
@@ -326,6 +381,16 @@ export default function PropertyListScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+    container: { flex: 1 },
+    topGradient: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 120,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
     hero: {
         padding: 16,
         paddingTop: 20,
@@ -372,4 +437,41 @@ const styles = StyleSheet.create({
         borderRadius: 22,
     },
     postBtnText: { color: "#fff", fontWeight: "700" },
+    myToggle: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+        backgroundColor: "#F9FAFB",
+    },
+    myToggleActive: {
+        borderColor: "#2563EB",
+        backgroundColor: "#EFF6FF",
+    },
+    myToggleInactive: {},
+    myToggleThumb: {
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        marginRight: 8,
+        backgroundColor: "#D1D5DB",
+    },
+    myToggleThumbOn: {
+        backgroundColor: "#2563EB",
+    },
+    myToggleThumbOff: {
+        backgroundColor: "#D1D5DB",
+    },
+    myToggleLabel: {
+        fontSize: 13,
+        color: "#4B5563",
+        fontWeight: "500",
+    },
+    myToggleLabelActive: {
+        color: "#1D4ED8",
+    },
 });
