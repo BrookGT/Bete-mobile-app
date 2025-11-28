@@ -42,22 +42,16 @@ function pickLocal(property) {
 export default function PropertyDetailScreen({ route, navigation }) {
     const { id } = route.params || {};
     const [property, setProperty] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [isFav, setIsFav] = useState(false);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const insets = useSafeAreaInsets();
     const { user } = useContext(AuthContext);
     const flatListRef = useRef(null);
-    
-    // These refs must be declared before any early returns to follow Rules of Hooks
-    const onViewableItemsChanged = useRef(({ viewableItems }) => {
-        if (viewableItems.length > 0) {
-            setActiveImageIndex(viewableItems[0].index || 0);
-        }
-    }).current;
-    const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 
     useEffect(() => {
         (async () => {
+            setLoading(true);
             try {
                 if (id != null) {
                     const resp = await api.get(`/properties/${id}`);
@@ -66,9 +60,14 @@ export default function PropertyDetailScreen({ route, navigation }) {
             } catch (e) {
                 console.warn("fetch property failed", e.message);
             }
-            const favs = await getFavorites();
-            const numId = Number(id);
-            setIsFav(favs.includes(numId));
+            try {
+                const favs = await getFavorites();
+                const numId = Number(id);
+                setIsFav(favs.includes(numId));
+            } catch (e) {
+                console.warn("fetch favorites failed", e.message);
+            }
+            setLoading(false);
         })();
     }, [id]);
 
@@ -113,14 +112,25 @@ export default function PropertyDetailScreen({ route, navigation }) {
         );
     };
 
-    if (!property)
+    if (loading) {
         return (
-            <Card style={styles.container}>
-                <Card.Content>
-                    <Paragraph>Property not found</Paragraph>
-                </Card.Content>
-            </Card>
+            <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Loading...</Text>
+            </View>
         );
+    }
+
+    if (!property) {
+        return (
+            <View style={styles.loadingContainer}>
+                <MaterialIcons name="error-outline" size={48} color="#94A3B8" />
+                <Text style={styles.loadingText}>Property not found</Text>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackBtn}>
+                    <Text style={styles.goBackText}>Go Back</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
 
     // Build images array
     const images = [];
@@ -163,9 +173,16 @@ export default function PropertyDetailScreen({ route, navigation }) {
                         horizontal
                         pagingEnabled
                         showsHorizontalScrollIndicator={false}
-                        onViewableItemsChanged={onViewableItemsChanged}
-                        viewabilityConfig={viewabilityConfig}
+                        onMomentumScrollEnd={(e) => {
+                            const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+                            setActiveImageIndex(index);
+                        }}
                         bounces={false}
+                        getItemLayout={(data, index) => ({
+                            length: SCREEN_WIDTH,
+                            offset: SCREEN_WIDTH * index,
+                            index,
+                        })}
                     />
                     
                     {/* Favorite Button */}
@@ -421,6 +438,28 @@ export default function PropertyDetailScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, alignItems: "center", justifyContent: "center" },
+    loadingContainer: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#F8FAFC",
+    },
+    loadingText: {
+        fontSize: 16,
+        color: "#64748B",
+        marginTop: 12,
+    },
+    goBackBtn: {
+        marginTop: 20,
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        backgroundColor: "#3B82F6",
+        borderRadius: 24,
+    },
+    goBackText: {
+        color: "#FFFFFF",
+        fontWeight: "600",
+    },
     screenContainer: {
         flex: 1,
         backgroundColor: "#F8FAFC",

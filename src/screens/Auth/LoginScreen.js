@@ -10,12 +10,28 @@ export default function LoginScreen({ navigation }) {
     const [showPassword, setShowPassword] = useState(false);
     const { login } = useContext(AuthContext);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const submit = async () => {
+        if (!email.trim() || !password.trim()) {
+            Alert.alert("Missing fields", "Please enter both email and password");
+            return;
+        }
+        setIsLoading(true);
         try {
-            await login(email, password);
+            await login(email.trim().toLowerCase(), password);
             // Auth state will redirect via RootNavigator
         } catch (e) {
-            Alert.alert("Login failed", e.response?.data?.error || e.message);
+            const errorMsg = e.response?.data?.error || e.message || "Unknown error";
+            if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
+                Alert.alert("Connection timeout", "The server is waking up. Please try again in a few seconds.");
+            } else if (e.code === 'ERR_NETWORK') {
+                Alert.alert("Network error", "Please check your internet connection.");
+            } else {
+                Alert.alert("Login failed", errorMsg);
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -78,9 +94,10 @@ export default function LoginScreen({ navigation }) {
                     </TouchableOpacity>
 
                     <GradientButton
-                        title="Sign in"
+                        title={isLoading ? "Signing in..." : "Sign in"}
                         onPress={submit}
-                        style={{ alignSelf: "stretch", marginTop: 8 }}
+                        style={{ alignSelf: "stretch", marginTop: 8, opacity: isLoading ? 0.7 : 1 }}
+                        disabled={isLoading}
                     />
 
                     <View style={styles.dividerRow}>
