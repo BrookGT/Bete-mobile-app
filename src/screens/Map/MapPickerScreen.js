@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import GradientButton from "../../components/GradientButton";
@@ -29,6 +29,7 @@ export default function MapPickerScreen({ navigation, route }) {
     const [marker, setMarker] = useState(
         initial ? { latitude: initial.lat, longitude: initial.lng } : null
     );
+    const [fetchingLocation, setFetchingLocation] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -40,6 +41,7 @@ export default function MapPickerScreen({ navigation, route }) {
     }, []);
 
     const useCurrentLocation = async () => {
+        setFetchingLocation(true);
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== "granted") {
@@ -51,16 +53,24 @@ export default function MapPickerScreen({ navigation, route }) {
                 if (!region) {
                     setRegion(defaultRegion);
                 }
+                setFetchingLocation(false);
                 return;
             }
 
-            const loc = await Location.getCurrentPositionAsync({});
-            setRegion({
+            // Use lower accuracy for faster response, with timeout
+            const loc = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+                timeInterval: 5000,
+                mayShowUserSettingsDialog: true,
+            });
+            
+            const newRegion = {
                 latitude: loc.coords.latitude,
                 longitude: loc.coords.longitude,
                 latitudeDelta: 0.01,
                 longitudeDelta: 0.01,
-            });
+            };
+            setRegion(newRegion);
             setMarker({
                 latitude: loc.coords.latitude,
                 longitude: loc.coords.longitude,
@@ -74,6 +84,8 @@ export default function MapPickerScreen({ navigation, route }) {
             if (!region) {
                 setRegion(defaultRegion);
             }
+        } finally {
+            setFetchingLocation(false);
         }
     };
 
@@ -112,10 +124,17 @@ export default function MapPickerScreen({ navigation, route }) {
             </MapView>
             <View style={styles.actions}>
                 <GradientButton
-                    title="Use my current location"
+                    title={fetchingLocation ? "Getting location..." : "Use my current location"}
                     onPress={useCurrentLocation}
                     style={{ marginBottom: 8 }}
+                    disabled={fetchingLocation}
                 />
+                {fetchingLocation && (
+                    <View style={styles.loadingRow}>
+                        <ActivityIndicator size="small" color="#10B981" />
+                        <Text style={styles.loadingText}>Fetching your location...</Text>
+                    </View>
+                )}
                 <GradientButton title="Use this location" onPress={confirm} />
             </View>
         </View>
@@ -127,4 +146,18 @@ const styles = StyleSheet.create({
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
     map: { flex: 1 },
     actions: { position: "absolute", bottom: 20, left: 16, right: 16 },
+    loadingRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 8,
+        backgroundColor: "rgba(255,255,255,0.9)",
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    loadingText: {
+        marginLeft: 8,
+        color: "#374151",
+        fontSize: 14,
+    },
 });

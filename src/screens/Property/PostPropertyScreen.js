@@ -28,6 +28,10 @@ export default function PostPropertyScreen({ navigation, route }) {
     const [address, setAddress] = useState("");
     const [images, setImages] = useState([]); // array of { uri }
     const [loading, setLoading] = useState(false);
+    const [listingType, setListingType] = useState("rent"); // 'rent' or 'sale'
+    const [bedrooms, setBedrooms] = useState("");
+    const [bathrooms, setBathrooms] = useState("");
+    const [area, setArea] = useState("");
     const picked = route.params?.pickedLocation;
     const [location, setLocation] = useState(null);
 
@@ -82,7 +86,7 @@ export default function PostPropertyScreen({ navigation, route }) {
         }
         setLoading(true);
         try {
-            // upload images first (take the first URL for backend's imageUrl)
+            // upload all images and store URLs
             const uris = images.map((i) => i.uri);
             const urls = await uploadImages(uris);
             const imageUrl = urls?.[0] || null;
@@ -94,9 +98,14 @@ export default function PostPropertyScreen({ navigation, route }) {
                 description,
                 price: Number(price),
                 imageUrl,
+                images: urls, // Send all image URLs as array
                 location: locText,
                 lat: location?.lat ?? undefined,
                 lng: location?.lng ?? undefined,
+                listingType,
+                bedrooms: bedrooms ? Number(bedrooms) : undefined,
+                bathrooms: bathrooms ? Number(bathrooms) : undefined,
+                area: area || undefined,
             };
             const resp = await api.post("/properties", body);
             setLoading(false);
@@ -200,6 +209,99 @@ export default function PostPropertyScreen({ navigation, route }) {
                             onChangeText={setDescription}
                             style={[styles.input, { height: 80, textAlignVertical: "top" }]}
                             multiline
+                            placeholderTextColor="#9CA3AF"
+                        />
+                    </View>
+                </View>
+
+                {/* Listing Type Toggle */}
+                <View style={styles.card}>
+                    <Text style={styles.sectionTitle}>Listing Type</Text>
+                    <View style={styles.listingTypeContainer}>
+                        <TouchableOpacity
+                            style={[
+                                styles.listingTypeBtn,
+                                listingType === "rent" && styles.listingTypeBtnActive,
+                            ]}
+                            onPress={() => setListingType("rent")}
+                            activeOpacity={0.8}
+                        >
+                            <MaterialIcons
+                                name="vpn-key"
+                                size={20}
+                                color={listingType === "rent" ? "#FFFFFF" : "#6B7280"}
+                            />
+                            <Text
+                                style={[
+                                    styles.listingTypeText,
+                                    listingType === "rent" && styles.listingTypeTextActive,
+                                ]}
+                            >
+                                For Rent
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.listingTypeBtn,
+                                listingType === "sale" && styles.listingTypeBtnActive,
+                            ]}
+                            onPress={() => setListingType("sale")}
+                            activeOpacity={0.8}
+                        >
+                            <MaterialIcons
+                                name="sell"
+                                size={20}
+                                color={listingType === "sale" ? "#FFFFFF" : "#6B7280"}
+                            />
+                            <Text
+                                style={[
+                                    styles.listingTypeText,
+                                    listingType === "sale" && styles.listingTypeTextActive,
+                                ]}
+                            >
+                                For Sale
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Property Details */}
+                <View style={styles.card}>
+                    <Text style={styles.sectionTitle}>Property Details</Text>
+                    
+                    <View style={styles.detailsRow}>
+                        <View style={[styles.inputWrap, styles.detailInput]}>
+                            <MaterialIcons name="king-bed" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <TextInput
+                                placeholder="Bedrooms"
+                                value={bedrooms}
+                                onChangeText={setBedrooms}
+                                style={styles.input}
+                                keyboardType="numeric"
+                                placeholderTextColor="#9CA3AF"
+                            />
+                        </View>
+                        <View style={[styles.inputWrap, styles.detailInput]}>
+                            <MaterialIcons name="bathtub" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                            <TextInput
+                                placeholder="Bathrooms"
+                                value={bathrooms}
+                                onChangeText={setBathrooms}
+                                style={styles.input}
+                                keyboardType="numeric"
+                                placeholderTextColor="#9CA3AF"
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.inputWrap}>
+                        <MaterialIcons name="square-foot" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                        <TextInput
+                            placeholder="Area (sqft)"
+                            value={area}
+                            onChangeText={setArea}
+                            style={styles.input}
+                            keyboardType="numeric"
                             placeholderTextColor="#9CA3AF"
                         />
                     </View>
@@ -442,5 +544,41 @@ const styles = StyleSheet.create({
         fontSize: 17,
         fontWeight: "700",
         marginLeft: 8,
+    },
+    // Listing Type Toggle Styles
+    listingTypeContainer: {
+        flexDirection: "row",
+        gap: 12,
+    },
+    listingTypeBtn: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 14,
+        borderRadius: 12,
+        backgroundColor: "#F3F4F6",
+        gap: 8,
+    },
+    listingTypeBtnActive: {
+        backgroundColor: "#10B981",
+    },
+    listingTypeText: {
+        fontSize: 15,
+        fontWeight: "600",
+        color: "#6B7280",
+    },
+    listingTypeTextActive: {
+        color: "#FFFFFF",
+    },
+    // Property Details Styles
+    detailsRow: {
+        flexDirection: "row",
+        gap: 12,
+        marginBottom: 10,
+    },
+    detailInput: {
+        flex: 1,
+        marginBottom: 0,
     },
 });

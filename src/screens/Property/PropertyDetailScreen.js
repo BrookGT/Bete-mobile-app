@@ -252,6 +252,18 @@ export default function PropertyDetailScreen({ route, navigation }) {
 
                 {/* Content Card */}
                 <View style={styles.contentCard}>
+                    {/* Listing Type Badge */}
+                    <View style={styles.listingTypeBadge}>
+                        <MaterialIcons 
+                            name={property.listingType === "sale" ? "sell" : "vpn-key"} 
+                            size={14} 
+                            color="#FFFFFF" 
+                        />
+                        <Text style={styles.listingTypeText}>
+                            {property.listingType === "sale" ? "For Sale" : "For Rent"}
+                        </Text>
+                    </View>
+
                     {/* Price Badge */}
                     <LinearGradient
                         colors={["#10B981", "#34D399"]}
@@ -260,7 +272,9 @@ export default function PropertyDetailScreen({ route, navigation }) {
                         style={styles.priceBadge}
                     >
                         <Text style={styles.priceText}>${property.price?.toLocaleString()}</Text>
-                        <Text style={styles.priceLabel}>/month</Text>
+                        {property.listingType !== "sale" && (
+                            <Text style={styles.priceLabel}>/month</Text>
+                        )}
                     </LinearGradient>
 
                     {/* Title */}
@@ -270,15 +284,21 @@ export default function PropertyDetailScreen({ route, navigation }) {
                     <View style={styles.quickInfoRow}>
                         <View style={styles.quickInfoItem}>
                             <MaterialIcons name="king-bed" size={20} color="#6B7280" />
-                            <Text style={styles.quickInfoText}>{property.bedrooms || 2} Beds</Text>
+                            <Text style={styles.quickInfoText}>
+                                {property.bedrooms ? `${property.bedrooms} Beds` : "N/A"}
+                            </Text>
                         </View>
                         <View style={styles.quickInfoItem}>
                             <MaterialIcons name="bathtub" size={20} color="#6B7280" />
-                            <Text style={styles.quickInfoText}>{property.bathrooms || 1} Bath</Text>
+                            <Text style={styles.quickInfoText}>
+                                {property.bathrooms ? `${property.bathrooms} Bath` : "N/A"}
+                            </Text>
                         </View>
                         <View style={styles.quickInfoItem}>
                             <MaterialIcons name="square-foot" size={20} color="#6B7280" />
-                            <Text style={styles.quickInfoText}>{property.area || "N/A"} sqft</Text>
+                            <Text style={styles.quickInfoText}>
+                                {property.area ? `${property.area} sqft` : "N/A"}
+                            </Text>
                         </View>
                     </View>
 
@@ -544,6 +564,23 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 16,
         paddingBottom: 20,
+    },
+    // Listing Type Badge
+    listingTypeBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        backgroundColor: "#3B82F6",
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        marginBottom: 12,
+        gap: 6,
+    },
+    listingTypeText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#FFFFFF",
     },
     priceBadge: {
         flexDirection: "row",
